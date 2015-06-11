@@ -11,7 +11,7 @@
 (function(root) {
 	root.Mizu = root.Mizu || {};
 	root.Mizu.VERSION = "1.0";
-	root.Mizu.baseUrl = "https://www.getmizu.com/api/v1";
+	root.Mizu.baseUrl = "";
 	root.Mizu.apiKey = "";
 	root.Mizu.applicationId = "";
 }(this));
@@ -36,10 +36,24 @@ Mizu.itemTags = function(success,error){
 	Mizu._request("GET",url,null,success,error);
 };
 
-
 Mizu.businessTags = function(success,error){
 	url = Mizu.baseUrl + "/tags/business";
 	Mizu._request("GET",url,null,success,error);
+};
+
+Mizu.searchBusinessToClaim = function(name,address,success,error){
+	url = Mizu.baseUrl + "/businesses/claiming?name=" + name +"&address=" + address;
+	Mizu._request("GET",url,null,success,error);
+};
+
+Mizu.claimedBusinesses = function(success,error){
+	url = Mizu.baseUrl + "/users/me/claims";
+	Mizu._requestUserProtectedResource("GET",url,null,success,error);
+};
+
+Mizu.claimThisBusiness = function(business,success,error){
+	url = Mizu.baseUrl + "/businesses/" + business.id + "/claim";
+	Mizu._requestUserProtectedResource("POST",url,null,success,error);
 };
 
 Mizu.analyticsViewMenusByBusiness = function(business,success,error){
@@ -52,6 +66,11 @@ Mizu.recentActivitiesByBusiness = function(business,limit,success,error){
 		limit = "50";
 	}
 	url = Mizu.baseUrl + "/businesses/" + business.id + "/activities/recent?limit=" + limit;
+	Mizu._requestUserProtectedResource("GET",url,null,success,error);
+};
+
+Mizu.mostActiveItems = function(business,success,error){
+	url = Mizu.baseUrl + "/businesses/" + business.id + "/items/mostactive";
 	Mizu._requestUserProtectedResource("GET",url,null,success,error);
 };
 
