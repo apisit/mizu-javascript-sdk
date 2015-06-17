@@ -11,7 +11,7 @@
 (function(root) {
 	root.Mizu = root.Mizu || {};
 	root.Mizu.VERSION = "1.0";
-	root.Mizu.baseUrl = "";
+	root.Mizu.baseUrl = "https://www.getmizu.com/api/v1";
 	root.Mizu.apiKey = "";
 	root.Mizu.applicationId = "";
 }(this));
@@ -24,6 +24,16 @@
 Mizu.init = function(applicationId, apiKey) {
 	Mizu.applicationId = applicationId;
 	Mizu.apiKey = apiKey;
+};
+
+Mizu.supportedCountries = function(success,error){
+	url = Mizu.baseUrl + "/settings/supportedcountries";
+	Mizu._request("GET",url,null,success,error);
+};
+
+Mizu.geoLookup = function(address,success,error){
+	url = Mizu.baseUrl + "/tools/geo?a=" + address;
+	Mizu._request("GET",url,null,success,error);
 };
 
 Mizu.myBusinesses = function(success,error){
@@ -41,10 +51,16 @@ Mizu.businessTags = function(success,error){
 	Mizu._request("GET",url,null,success,error);
 };
 
-Mizu.searchBusinessToClaim = function(name,address,success,error){
+Mizu.searchBusinessesToClaim = function(name,address,success,error){
 	url = Mizu.baseUrl + "/businesses/claiming?name=" + name +"&address=" + address;
 	Mizu._request("GET",url,null,success,error);
 };
+
+Mizu.businessesToClaimOnMap= function(lat,lng,success,error){
+	url = Mizu.baseUrl + "/businesses/claiming/map?lat=" + lat +"&lng=" + lng;
+	Mizu._request("GET",url,null,success,error);
+};
+
 
 Mizu.claimedBusinesses = function(success,error){
 	url = Mizu.baseUrl + "/users/me/claims";
@@ -104,9 +120,19 @@ Mizu.saveBusiness = function(business,success,error){
 	Mizu._requestUserProtectedResource(method,url,JSON.stringify(business),success,error);
 };
 
+var setUser = function(data){
+	sessionStorage.setItem("__currentUser",btoa(JSON.stringify(data)));
+};
+
+var getUser = function(){
+	var user = sessionStorage.getItem('__currentUser');
+	if (user!==null && user.access_token!=="")
+		return JSON.parse(atob(user));
+	return null;
+};
+
 Mizu.currentUser = function(){
-	var user = localStorage.getItem('currentUser');
-	return JSON.parse(user);
+	return getUser();
 };
 
 Mizu.toggleBusinessPublishStatus = function(businessId,success,error){
@@ -132,16 +158,27 @@ Mizu.resetPassword = function(email,success,error){
 Mizu.signup = function(firstname,lastname,email,password,success,error){
 	var ajaxSuccess = function(data,status){
 		//save this to location storage
-		localStorage.setItem("currentUser",JSON.stringify(data));
+		setUser(data);
 		success(data,status);
 	};
-	url = Mizu.baseUrl + "/users";
+	url = Mizu.baseUrl + "/signup";
 	var data = JSON.stringify({"email":email,"password":password,"firstname":firstname,"lastname":lastname});
 	Mizu._request("POST",url,data,ajaxSuccess,error);
 };
 
 Mizu.logout = function(){
-	localStorage.removeItem("currentUser");
+	sessionStorage.removeItem("__currentUser");
+};
+
+Mizu.loginWithFacebook = function(facebookToken,email,success,error){
+	var ajaxSuccess = function(data,status){
+		//save this to location storage
+		setUser(data);
+		success(data,status);
+	};
+	url = Mizu.baseUrl + "/signup";
+	var data = JSON.stringify({"email":email,"social_account":{"service_name":"facebook","access_token":facebookToken}});
+	Mizu._request("POST",url,data,ajaxSuccess,error);
 };
 
 Mizu.login =function(email,password,success,error){
@@ -153,7 +190,7 @@ Mizu.login =function(email,password,success,error){
 
 	var ajaxSuccess = function(data,status){
 		//save this to location storage
-		localStorage.setItem("currentUser",JSON.stringify(data));
+		setUser(data);
 		success(data,status);
 	};
 	url = Mizu.baseUrl + "/login";
@@ -165,7 +202,7 @@ Mizu.updateName = function(firstname,lastname,success,error){
 
 	var ajaxSuccess = function(data,status){
 		//update this to location storage
-		localStorage.setItem("currentUser",JSON.stringify(data));
+		setUser(data);
 		success(data,status);
 	};
 
