@@ -46,6 +46,13 @@ Mizu.itemTags = function(success,error){
 	Mizu._request("GET",url,null,success,error);
 };
 
+
+
+Mizu.newBusinessTemplate = function(success,error){
+	url = Mizu.baseUrl + "/businesses/new";
+	Mizu._request("GET",url,null,success,error);
+};
+
 Mizu.businessTags = function(success,error){
 	url = Mizu.baseUrl + "/tags/business";
 	Mizu._request("GET",url,null,success,error);
@@ -102,11 +109,16 @@ Mizu.saveMenus = function(business,menus,success,error){
 
 Mizu.deleteBusiness = function(business,success,error){
 	url = Mizu.baseUrl + "/businesses/" + business.id;
-	Mizu._requestUserProtectedResource("DEL",url,null,success,error);
+	Mizu._requestUserProtectedResource("DELETE",url,null,success,error);
 };
 
 Mizu.businessById = function(businessId,success,error){
 	url = Mizu.baseUrl + "/businesses/" + businessId;
+	Mizu._requestUserProtectedResource("GET",url,null,success,error);
+};
+
+Mizu.businessViewLogById = function(businessId,success,error){
+	url = Mizu.baseUrl + "/businesses/" + businessId + "/analytics/views";
 	Mizu._requestUserProtectedResource("GET",url,null,success,error);
 };
 
@@ -121,13 +133,19 @@ Mizu.saveBusiness = function(business,success,error){
 };
 
 var setUser = function(data){
-	sessionStorage.setItem("__currentUser",btoa(JSON.stringify(data)));
+	localStorage.setItem("__currentUser",btoa(JSON.stringify(data)));
 };
 
 var getUser = function(){
-	var user = sessionStorage.getItem('__currentUser');
-	if (user!==null && user.access_token!=="")
-		return JSON.parse(atob(user));
+	var user = localStorage.getItem('__currentUser');
+	if (user!==null && user.access_token!==""){
+		try {
+			var u = JSON.parse(atob(user));
+			return u;
+		} catch (e) {
+			return null;
+		}
+	}
 	return null;
 };
 
@@ -161,13 +179,13 @@ Mizu.signup = function(firstname,lastname,email,password,success,error){
 		setUser(data);
 		success(data,status);
 	};
-	url = Mizu.baseUrl + "/signup";
+	url = Mizu.baseUrl + "/signup?source=web";
 	var data = JSON.stringify({"email":email,"password":password,"firstname":firstname,"lastname":lastname});
 	Mizu._request("POST",url,data,ajaxSuccess,error);
 };
 
 Mizu.logout = function(){
-	sessionStorage.removeItem("__currentUser");
+	localStorage.removeItem("__currentUser");
 };
 
 Mizu.loginWithFacebook = function(facebookToken,email,success,error){
@@ -209,6 +227,21 @@ Mizu.updateName = function(firstname,lastname,success,error){
 	url = Mizu.baseUrl + "/users/me";
 	var data = JSON.stringify({"first_name":firstname,"last_name":lastname});
 	Mizu._requestUserProtectedResource("PUT",url,data,ajaxSuccess,error);
+};
+
+Mizu.optInPayment = function(success,error){
+	url = Mizu.baseUrl + "/users/me/joins/pay";
+	Mizu._requestUserProtectedResource("PUT",url,null,success,error);
+};
+
+Mizu.me = function(success,error){
+	url = Mizu.baseUrl + "/users/me";
+	Mizu._requestUserProtectedResource("GET",url,null,success,error);
+};
+
+Mizu.myCards = function(success,error){
+	url = Mizu.baseUrl + "/users/me/cards/default";
+	Mizu._requestUserProtectedResource("GET",url,null,success,error);
 };
 
 Mizu._requestUserProtectedResource = function(method, url, data,success,error){
